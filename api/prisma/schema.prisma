@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String   @db.VarChar(255)
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int      @db.Integer
+  category    String   @db.VarChar(100)
+  description String?  @db.Text
+  sku         String?  @unique @db.VarChar(50)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime @updatedAt @db.Timestamp(6)
+
+  @@index([name])
+  @@index([category])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt   DateTime  @updatedAt @db.Timestamp(6)
+  products    Product[]
+
+  @@index([isActive])
+}
+
+model InventoryLog {
+  id         String   @id @default(uuid())
+  productId  String   @db.VarChar(36)
+  action     String   @db.VarChar(50)
+  quantity   Int      @db.Integer
+  previousStock Int   @db.Integer
+  newStock   Int      @db.Integer
+  reason     String?  @db.Text
+  performedBy String  @db.VarChar(100)
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([productId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+enum ProductStatus {
+  AVAILABLE
+  OUT_OF_STOCK
+  DISCONTINUED
+  RESERVED
+}
+
+enum LogAction {
+  CREATE
+  UPDATE
+  DELETE
+  STOCK_ADJUSTMENT
+  RESTOCK
+  SALE
+}
